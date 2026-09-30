@@ -247,6 +247,7 @@ bind generic	<C-C>	quit			# Close all views and quit
 bind status	u	status-update		# Stage/unstage changes in file
 bind status	!	status-revert		# Revert changes in file
 bind status	M	status-merge		# Open git-mergetool(1)
+bind status	t	:toggle status-tree	# Toggle directory tree layout
 # bind status	???	:toggle status		# Show short or long status labels
 bind stage	u	status-update		# Stage/unstage current diff (c)hunk
 bind stage	1	stage-update-line	# Stage/unstage current line
@@ -329,7 +330,6 @@ bind generic	$	:toggle commit-title-overflow
 # bind generic	???	:toggle status		# Toggle status display
 # bind generic	???	:toggle status-show-untracked-dirs
 						# Toggle display of file in untracked directories
-# bind generic	???	:toggle status-tree	# Toggle directory tree layout of the status view
 # bind generic	???	:toggle vertical-split	# Toggle vertical split
 # bind generic	???	:toggle word-diff	# Toggle word diff
 # bind generic	???	:toggle diff-indicator	# Toggle display of diff +/- signs
