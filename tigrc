@@ -117,6 +117,7 @@ set reference-format		= [branch] <tag> {remote} ~replace~
 set commit-order		= auto		# Enum: auto, default, topo, date, reverse (main)
 set status-show-untracked-dirs	= yes		# Show files in untracked directories? (status)
 set status-show-untracked-files	= yes		# Show untracked files?
+set status-tree			= no		# Show changed files as a directory tree? (status)
 set ignore-space		= no		# Enum: no, all, some, at-eol (diff)
 set show-notes			= yes		# When non-bool passed as `--show-notes=...` (diff)
 #set diff-context		= 3		# Number of lines to show around diff changes (diff)
@@ -328,6 +329,7 @@ bind generic	$	:toggle commit-title-overflow
 # bind generic	???	:toggle status		# Toggle status display
 # bind generic	???	:toggle status-show-untracked-dirs
 						# Toggle display of file in untracked directories
+# bind generic	???	:toggle status-tree	# Toggle directory tree layout of the status view
 # bind generic	???	:toggle vertical-split	# Toggle vertical split
 # bind generic	???	:toggle word-diff	# Toggle word diff
 # bind generic	???	:toggle diff-indicator	# Toggle display of diff +/- signs
