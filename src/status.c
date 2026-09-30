@@ -36,6 +36,8 @@ static char status_onbranch[SIZEOF_STR];
 static bool show_untracked_only = false;
 static bool no_files_staged;
 
+DEFINE_ALLOCATOR(realloc_status_files, struct status, 32)
+
 void
 open_status_view(struct view *prev, bool untracked_only, enum open_flags flags)
 {
@@ -86,10 +88,36 @@ status_get_diff(struct status *file, const char *buf, size_t bufsize)
 	return true;
 }
 
+static struct line *
+status_add_entry(struct view *view, struct status *file, enum line_type type)
+{
+	struct status *entry;
+	struct line *line = add_line_alloc(view, &entry, type, 0, false);
+
+	if (!line)
+		return NULL;
+	*entry = *file;
+	view_column_info_update(view, line);
+	return line;
+}
+
+static bool
+status_add_files(struct view *view, struct status *files, size_t count, enum line_type type)
+{
+	size_t i;
+
+	for (i = 0; i < count; i++)
+		if (!status_add_entry(view, &files[i], type))
+			return false;
+	return true;
+}
+
 static bool
 status_run(struct view *view, const char *argv[], char status, enum line_type type)
 {
-	struct status *unmerged = NULL;
+	struct status *files = NULL;
+	size_t count = 0;
+	size_t unmerged = 0;	/* One past the last unmerged entry. */
 	struct buffer buf;
 	struct io io;
 	const char **status_argv = NULL;
@@ -105,7 +133,6 @@ status_run(struct view *view, const char *argv[], char status, enum line_type ty
 	add_line_nodata(view, type);
 
 	while (io_get(&io, &buf, 0, true)) {
-		struct line *line;
 		struct status parsed = {0};
 		struct status *file = &parsed;
 
@@ -141,26 +168,26 @@ status_run(struct view *view, const char *argv[], char status, enum line_type ty
 
 		/* Collapse all modified entries that follow an associated
 		 * unmerged entry. */
-		if (unmerged && !strcmp(unmerged->new.name, file->new.name)) {
-			unmerged->status = 'U';
-			unmerged = NULL;
+		if (unmerged && !strcmp(files[unmerged - 1].new.name, file->new.name)) {
+			files[unmerged - 1].status = 'U';
+			unmerged = 0;
 			continue;
 		}
 
-		line = add_line_alloc(view, &file, type, 0, false);
-		if (!line)
+		if (!realloc_status_files(&files, count, 1))
 			goto error_out;
-		*file = parsed;
-		view_column_info_update(view, line);
-		if (file->status == 'U')
-			unmerged = file;
+		files[count++] = parsed;
+		if (parsed.status == 'U')
+			unmerged = count;
 	}
 
-	if (io_error(&io)) {
+	if (io_error(&io) || !status_add_files(view, files, count, type)) {
 error_out:
+		free(files);
 		io_done(&io);
 		return false;
 	}
+	free(files);
 
 	if (!view->line[view->lines - 1].data) {
 		add_line_nodata(view, LINE_STAT_NONE);
